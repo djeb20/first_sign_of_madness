@@ -2,22 +2,26 @@ import numpy as np
 from tqdm import tqdm
 from collections import defaultdict
     
-class Agent:
+class Agent_crazy:
     
     def __init__(self, env, S, epsilon=0.05, gamma=0.99, alpha=0.2):
-        
-        # Agent hyper-parameters
-        self.action_dim = env.action_space.n
-        self.state_dim = env.observation_space.shape[0]
-        self.actions = np.arange(self.action_dim)
-        self.epsilon = epsilon
-        self.gamma = gamma
-        self.alpha = alpha
 
         # Environment and coalition
         self.env = env
         self.S = S
+        self.state_dim = env.observation_space.shape[0]
         self.not_S = [i for i in range(self.state_dim) if i not in S]
+
+        # The range of the state missing.
+        self.missing = env.observation_space[self.not_S[0]].n
+        
+        # Agent hyper-parameters
+        self.action_dim = env.action_space.n * self.missing
+        self.actions = np.arange(self.action_dim)
+        self.action_dict = {i : [i // self.missing, i % self.missing] for i in self.actions}
+        self.epsilon = epsilon
+        self.gamma = gamma
+        self.alpha = alpha
 
         # # Parameters for epsilon and alpha decay
         # n = 7
@@ -60,7 +64,7 @@ class Agent:
 
         return out    
 
-    def train(self, num_episodes, q_tables_dict={}, tol=1e-7, scale=1000):
+    def train(self, num_episodes, q_tables_dict={}, tol=1e-5, scale=1000):
         """
         Trains one agent using Q-Learning.
         """
@@ -80,8 +84,11 @@ class Agent:
                 # Usual RL, choose action, execute, update
                 # Only choose and update from valid actions
                 action = self.choose_action(state)
-                new_s, reward, done, _ = self.env.step(action)
-                new_state = self.mask_state(new_s)
+                env_action = self.action_dict[action][0]
+                msg = self.action_dict[action][1]
+
+                new_s, reward, done, _ = self.env.step(env_action)
+                new_state = np.append(self.mask_state(new_s), msg)
                 update = self.update(state, action, new_state, reward, done)
                 state = new_state
 
