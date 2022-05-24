@@ -81,6 +81,8 @@ class Agent:
                 action = self.choose_action(state)
 
                 new_s, reward, done, _ = self.env.step(action)
+                if reward == -10:
+                    reward = -1
                 new_state = self.mask_state(new_s)
                 update = self.update(state, action, new_state, reward, done)
                 state = new_state
@@ -99,8 +101,9 @@ class Agent:
 
             if i % scale == 0:
                 print()
-                print('Average td error: {}, epsilon: {}'.format(mean_error, self.epsilon))
-                print('Average ret: {}'.format(np.mean(returns[-100:])))
+                print('Average td error: {:0.04f}, \
+                    Average ret: {:0.02f}, \
+                        Step: {}'.format(mean_error, np.mean(returns[-100:]), count))
 
             # Learning converges according to tolerance
             if mean_error < tol: break
