@@ -29,7 +29,7 @@ env = FactoredState(gym.make('Taxi-v3'))
 
 S = np.arange(env.action_space.n)
 
-agent = Agent(env, S, epsilon=0.1, gamma=1, alpha=0.2)
+agent = Agent(env, S, epsilon=0.05, gamma=1, alpha=0.2)
 
 num_episodes = 100000
 
